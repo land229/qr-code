@@ -19,12 +19,7 @@ COPY . /var/www/html/
 WORKDIR /var/www/html
 
 # Installer dépendances Symfony
-RUN composer install --no-dev --optimize-autoloader
-
-RUN mkdir -p var/cache var/log
-RUN chmod -R 777 var
-
-
+RUN composer install 
 # Définir public/ comme racine Apache
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
