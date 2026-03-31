@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+{% block title %}Utilisateurs{% endblock %}
+{% block page_title %}Gestion des utilisateurs{% endblock %}
+{% block page_description %}Gérez les comptes et les accès{% endblock %}
+
+{% block actions %}
+    <li>
+        <a href="{{ path('admin_user_new') }}" class="btn btn-primary">
+            <em class="icon ni ni-user-add-fill"></em>
+            <span>Ajouter un utilisateur</span>
+        </a>
+    </li>
+{% endblock %}
+
+{% block content_block %}
+<style>
+.u-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; }
+.u-table { width:100%; border-collapse:collapse; font-size:13px; }
+.u-table th { text-align:left; padding:10px 16px; border-bottom:2px solid #e2e8f0; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#64748b; background:#f8fafc; }
+.u-table td { padding:12px 16px; border-bottom:1px solid #f1f5f9; color:#0f172a; vertical-align:middle; }
+.u-table tr:last-child td { border-bottom:none; }
+.u-table tr:hover td { background:#f8fafc; }
+.u-avatar { width:36px; height:36px; border-radius:50%; background:#e0e7ff; color:#4f46e5; display:inline-flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; }
+.u-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:700; }
+.u-badge-actif    { background:#d1fae5; color:#065f46; }
+.u-badge-suspendu { background:#fef2f2; color:#991b1b; }
+.u-badge-admin    { background:#e0e7ff; color:#3730a3; }
+.u-badge-user     { background:#f1f5f9; color:#64748b; }
+.u-actions { display:flex; gap:6px; }
+.u-btn { padding:5px 10px; border-radius:7px; font-size:11px; font-weight:700; border:none; cursor:pointer; transition:all .15s; }
+.u-btn-toggle-ok  { background:#fef2f2; color:#ef4444; }
+.u-btn-toggle-ok:hover { background:#ef4444; color:#fff; }
+.u-btn-toggle-off { background:#d1fae5; color:#059669; }
+.u-btn-toggle-off:hover { background:#10b981; color:#fff; }
+.u-btn-show { background:#e0e7ff; color:#4f46e5; }
+.u-btn-show:hover { background:#4f46e5; color:#fff; }
+.u-btn-del  { background:#fef2f2; color:#ef4444; }
+.u-btn-del:hover { background:#ef4444; color:#fff; }
+.u-search { display:flex; align-items:center; gap:8px; padding:8px 14px; background:#fff; border:1.5px solid #e2e8f0; border-radius:9px; margin-bottom:16px; max-width:320px; }
+.u-search input { border:none; outline:none; font-size:13.5px; width:100%; }
+.u-toast { position:fixed; bottom:24px; right:24px; padding:12px 18px; border-radius:9px; font-size:13px; font-weight:700; color:#fff; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,.18); z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.175,.885,.32,1.275); pointer-events:none; }
+.u-toast.show { transform:translateY(0); opacity:1; }
+.u-toast.ok  { background:#10b981; }
+.u-toast.err { background:#ef4444; }
+</style>
+
+<div class="u-search">
+    <em class="icon ni ni-search" style="color:#94a3b8"></em>
+    <input type="text" id="uSearch" placeholder="Rechercher un utilisateur…">
+</div>
+
+<div class="u-card">
+    <div style="overflow-x:auto">
+        <table class="u-table" id="uTable">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>QR Codes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in users %}
+                {% set user = row[0] is defined ? row[0] : row %}
+                {% set qrCount = row['qrCount'] ?? 0 %}
+                <tr id="row-{{ user.id }}" data-name="{{ user.firstname|lower }} {{ user.email|lower }}">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div class="u-avatar">{{ user.firstname|slice(0,1)|upper }}</div>
+                            <div>
+                                <div style="font-weight:700">{{ user.firstname }}</div>
+                                <div style="font-size:11px;color:#64748b">#{{ user.id }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <span class="u-badge u-badge-admin"><em class="icon ni ni-shield-check"></em> Admin</span>
+                        {% else %}
+                            <span class="u-badge u-badge-user"><em class="icon ni ni-user"></em> Utilisateur</span>
+                        {% endif %}
+                    </td>
+                    {# <td>
+                        <span class="u-badge u-badge-{{ user.statut ?? 'actif' }}" id="badge-{{ user.id }}">
+                            {{ user.statut == 'suspendu' ? '⛔ Suspendu' : '✅ Actif' }}
+                        </span>
+                    </td> #}
+                    <td><strong>{{ qrCount }}</strong></td>
+                    {# <td>
+                        <div class="u-actions">
+                            <a href="{{ path('admin_user_show', {id: user.id}) }}" class="u-btn u-btn-show">
+                                <em class="icon ni ni-eye"></em> Voir
+                            </a>
+                            {% if user != app.user %}
+                            <button class="u-btn {{ user.statut == 'actif' ? 'u-btn-toggle-ok' : 'u-btn-toggle-off' }}"
+                                    id="toggle-{{ user.id }}"
+                                    onclick="toggleUser({{ user.id }}, '{{ user.statut ?? 'actif' }}')">
+                                {{ user.statut == 'actif' ? '⛔ Suspendre' : '✅ Réactiver' }}
+                            </button>
+                            <button class="u-btn u-btn-del"
+                                    onclick="deleteUser({{ user.id }}, '{{ user.nom|e('js') }}')">
+                                <em class="icon ni ni-trash"></em>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td> #}
+                </tr>
+            {% else %}
+                <tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8">Aucun utilisateur.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="u-toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+function showToast(msg, type='ok') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = 'u-toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function toggleUser(id, currentStatut) {
+    fetch(`/admin/users/${id}/toggle-status`, { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'} })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const badge  = document.getElementById('badge-' + id);
+            const btn    = document.getElementById('toggle-' + id);
+            const isSusp = data.statut === 'suspendu';
+            badge.textContent  = isSusp ? '⛔ Suspendu' : '✅ Actif';
+            badge.className    = 'u-badge u-badge-' + data.statut;
+            btn.textContent    = isSusp ? '✅ Réactiver' : '⛔ Suspendre';
+            btn.className      = 'u-btn ' + (isSusp ? 'u-btn-toggle-off' : 'u-btn-toggle-ok');
+            btn.setAttribute('onclick', `toggleUser(${id}, '${data.statut}')`);
+            showToast(data.message, 'ok');
+        } else {
+            showToast(data.message, 'err');
+        }
+    })
+    .catch(() => showToast('Erreur réseau.', 'err'));
+}
+
+function deleteUser(id, nom) {
+    if (!confirm(`Supprimer définitivement « ${nom} » et tous ses QR codes ?`)) return;
+    const token = '{{ csrf_token("delete_user_") }}' + id;
+    fetch(`/admin/users/${id}/delete`, {
+        method: 'POST',
+        headers: {'X-Requested-With':'XMLHttpRequest', 'Content-Type':'application/x-www-form-urlencoded'},
+        body: `_token=${encodeURIComponent(token)}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.getElementById('row-' + id);
+            row.style.opacity = '0'; row.style.transition = 'opacity .3s';
+            setTimeout(() => row.remove(), 300);
+            showToast(data.message, 'ok');
+        } else {
+            showToast(data.message, 'err');
+        }
+    })
+    .catch(() => showToast('Erreur réseau.', 'err'));
+}
+
+// Recherche en temps réel
+document.getElementById('uSearch').addEventListener('input', function() {
+    const s = this.value.toLowerCase();
+    document.querySelectorAll('#uTable tbody tr[data-name]').forEach(tr => {
+        tr.style.display = tr.dataset.name.includes(s) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

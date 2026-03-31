@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Scan index{% endblock %}
+
+{% block body %}
+    <h1>Scan index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>DateHeure</th>
+                <th>IpAdresse</th>
+                <th>Ville</th>
+                <th>Pays</th>
+                <th>Appareil</th>
+                <th>Navigateur</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for scan in scans %}
+            <tr>
+                <td>{{ scan.id }}</td>
+                <td>{{ scan.dateHeure ? scan.dateHeure|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ scan.ipAdresse }}</td>
+                <td>{{ scan.ville }}</td>
+                <td>{{ scan.pays }}</td>
+                <td>{{ scan.appareil }}</td>
+                <td>{{ scan.navigateur }}</td>
+                <td>
+                    <a href="{{ path('app_admin_scan_show', {'id': scan.id}) }}">show</a>
+                    <a href="{{ path('app_admin_scan_edit', {'id': scan.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_admin_scan_new') }}">Create new</a>
+{% endblock %}

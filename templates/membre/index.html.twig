@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+{% block title %} membres {% endblock %}
+
+{% block content %}
+    <div class="nk-content ">
+        {% block content_fluid %}
+            <div class="container-fluid">
+                {% block content_inner %}
+                    <div class="nk-content-body">
+                        {% embed 'admin/_partials/page_content.html.twig' %}
+                            {% block page_title %}
+                                <div class="d-flex">
+                                    <div class="me-2"> Nos membres</div>
+                                    <div class="user-avatar sm bg-blue align-items-center justify-center bg-blue rounded-circle">4</div>
+                                </div>
+                            {% endblock %}
+                            {% block page_description %}
+                                Listes des membres de AFADOPA
+                            {% endblock %}
+                            {% block actions %}
+                                <div class="nk-block-head-content">
+                                    <div class="toggle-wrap nk-block-tools-toggle">
+                                        <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                                        <div class="toggle-expand-content" data-content="pageMenu">
+                                            <ul class="nk-block-tools g-3">
+                                                <li>
+                                                    <div class="drodown">
+                                                        <a href="#" class="dropdown-toggle btn btn-white btn-dim btn-outline-light" data-bs-toggle="dropdown"><em class="d-none d-sm-inline icon ni ni-filter-alt"></em><span>Filtrer par</span><em class="dd-indc icon ni ni-chevron-right"></em></a>
+                                                        <div class="dropdown-menu dropdown-menu-end">
+                                                            <ul class="link-list-opt no-bdr">
+                                                                <li><a href="#"><span>Open</span></a></li>
+                                                                <li><a href="#"><span>Closed</span></a></li>
+                                                                <li><a href="#"><span>Onhold</span></a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="nk-block-tools-opt d-none d-sm-block">
+                                                    <a href="{{ path('app_membre_new') }}" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Nouveau membre </span></a>
+                                                </li>
+                                                <li class="nk-block-tools-opt d-block d-sm-none">
+                                                    <a href="#" class="btn btn-icon btn-primary"><em class="icon ni ni-plus"></em></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div><!-- .toggle-wrap -->
+                                </div>
+                            {% endblock %}
+                        {% endembed %}
+                        {% block content_block %}
+                            <table class="table dataTable datatable-init">
+                                <thead>
+                                <tr>
+                                    <th>N°</th>
+                                    <th>Nom</th>
+                                    <th>Prenom</th>
+                                    <th>Telephone</th>
+                                    <th>Email</th>
+                                    <th>Total Cotisations</th>
+                                    <th>actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for membre in membres %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ membre.nom }}</td>
+                                        <td>{{ membre.prenom }}</td>
+                                        <td>{{ membre.telephone }}</td>
+                                        <td>{{ membre.email }}</td>
+                                        <td>{{ membre.totalCotisations }}</td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-round px-1" href="{{ path('app_membre_edit', {'id': membre.id}) }}">
+                                                <em class="ni ni-pen icon"></em>
+                                            </a>
+                                            <a class="btn btn-sm btn-round px-1" href="{{ path('app_membre_show', {'id': membre.id}) }}">
+                                                <em class="ni ni-eye icon"></em>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endblock %}
+                    </div>
+                {% endblock %}
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

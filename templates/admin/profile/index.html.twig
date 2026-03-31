@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mon profil{% endblock %}
+{% block page_title %}Mon profil{% endblock %}
+{% block page_description %}Gérez vos informations personnelles{% endblock %}
+
+{% block content_block %}
+<style>
+.pr-grid { display:grid; grid-template-columns:340px 1fr; gap:24px; align-items:start; }
+.pr-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; }
+.pr-card-head { padding:18px 22px; border-bottom:1px solid #e2e8f0; }
+.pr-card-head h5 { margin:0; font-size:14px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+.pr-card-body { padding:22px; }
+.pr-avatar { width:72px; height:72px; border-radius:50%; background:#e0e7ff; color:#4f46e5; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; margin:0 auto 16px; }
+.pr-name { font-size:18px; font-weight:900; color:#0f172a; text-align:center; margin:0 0 4px; }
+.pr-email { font-size:13px; color:#64748b; text-align:center; margin:0 0 16px; }
+.pr-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+.pr-stat-box { background:#f8fafc; border-radius:10px; padding:12px; text-align:center; }
+.pr-stat-val   { font-size:20px; font-weight:900; color:#4f46e5; }
+.pr-stat-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
+.pr-group { margin-bottom:16px; }
+.pr-label { font-size:13px; font-weight:700; color:#0f172a; margin-bottom:6px; display:block; }
+.pr-input { width:100%; padding:9px 13px; border:1.5px solid #e2e8f0; border-radius:9px; font-size:13.5px; color:#0f172a; background:#fff; outline:none; box-sizing:border-box; transition:border-color .2s; }
+.pr-input:focus { border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+.pr-btn { width:100%; padding:11px; border:none; border-radius:9px; background:#4f46e5; color:#fff; font-size:14px; font-weight:800; cursor:pointer; transition:all .2s; margin-top:4px; }
+.pr-btn:hover { background:#3730a3; }
+.pr-divider { display:flex; align-items:center; gap:10px; margin:20px 0 16px; }
+.pr-divider span { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#94a3b8; white-space:nowrap; }
+.pr-divider::before,.pr-divider::after { content:''; flex:1; height:1px; background:#e2e8f0; }
+.pr-alert { padding:10px 14px; border-radius:9px; font-size:13px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.pr-alert-ok  { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+.pr-alert-err { background:#fef2f2; color:#7f1d1d; border:1px solid #fecaca; }
+@media(max-width:900px) { .pr-grid { grid-template-columns:1fr; } }
+</style>
+
+{% for msg in app.flashes('success') %}
+    <div class="pr-alert pr-alert-ok"><em class="icon ni ni-check-circle-fill"></em> {{ msg }}</div>
+{% endfor %}
+{% for msg in app.flashes('error') %}
+    <div class="pr-alert pr-alert-err"><em class="icon ni ni-alert-circle-fill"></em> {{ msg }}</div>
+{% endfor %}
+
+<div class="pr-grid">
+
+    {# ══ Carte identité ══ #}
+    <div>
+        <div class="pr-card">
+            <div class="pr-card-body" style="padding:28px 22px">
+                <div class="pr-avatar">{{ user.nom|slice(0,1)|upper }}</div>
+                <p class="pr-name">{{ user.nom }}</p>
+                <p class="pr-email">{{ user.email }}</p>
+
+                {% if 'ROLE_ADMIN' in user.roles %}
+                    <div style="text-align:center">
+                        <span style="background:#e0e7ff;color:#3730a3;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:800">
+                            <em class="icon ni ni-shield-check"></em> Administrateur
+                        </span>
+                    </div>
+                {% endif %}
+
+                <div class="pr-stat-grid">
+                    <div class="pr-stat-box">
+                        <div class="pr-stat-val">{{ qrStats.total }}</div>
+                        <div class="pr-stat-label">QR Codes</div>
+                    </div>
+                    <div class="pr-stat-box">
+                        <div class="pr-stat-val">{{ scanStats.total }}</div>
+                        <div class="pr-stat-label">Scans</div>
+                    </div>
+                    <div class="pr-stat-box">
+                        <div class="pr-stat-val">{{ qrStats.active }}</div>
+                        <div class="pr-stat-label">Actifs</div>
+                    </div>
+                    <div class="pr-stat-box">
+                        <div class="pr-stat-val">{{ scanStats.today }}</div>
+                        <div class="pr-stat-label">Scans/j</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ══ Formulaire de modification ══ #}
+    <div>
+        <div class="pr-card">
+            <div class="pr-card-head"><h5><em class="icon ni ni-edit"></em> Informations personnelles</h5></div>
+            <div class="pr-card-body">
+                <form method="POST" action="{{ path('app_profile') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('profile_update') }}">
+
+                    <div class="pr-group">
+                        <label class="pr-label">Nom complet</label>
+                        <input type="text" class="pr-input" name="nom" value="{{ user.nom }}" required>
+                    </div>
+                    <div class="pr-group">
+                        <label class="pr-label">Adresse email</label>
+                        <input type="email" class="pr-input" name="email" value="{{ user.email }}" required>
+                    </div>
+
+                    <button type="submit" class="pr-btn">
+                        <em class="icon ni ni-save"></em> Enregistrer les modifications
+                    </button>
+
+                    <div class="pr-divider"><span><em class="icon ni ni-lock"></em> Changer le mot de passe</span></div>
+
+                    <div class="pr-group">
+                        <label class="pr-label">Mot de passe actuel</label>
+                        <input type="password" class="pr-input" name="current_password" placeholder="••••••••">
+                    </div>
+                    <div class="pr-group">
+                        <label class="pr-label">Nouveau mot de passe</label>
+                        <input type="password" class="pr-input" name="new_password" placeholder="••••••••">
+                    </div>
+                    <div class="pr-group">
+                        <label class="pr-label">Confirmer le nouveau mot de passe</label>
+                        <input type="password" class="pr-input" name="confirm_password" placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="pr-btn" style="background:#0f172a">
+                        <em class="icon ni ni-lock-fill"></em> Changer le mot de passe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

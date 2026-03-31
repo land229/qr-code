@@ -1,0 +1,125 @@
+<div class="nk-sidebar nk-sidebar-fixed is-light " data-content="sidebarMenu">
+    <div class="nk-sidebar-element nk-sidebar-head">
+        <div class="nk-sidebar-brand">
+            <a href="{{ path('app_admin') }}" class="logo-link nk-sidebar-logo">
+                <img class="logo-light logo-img" src="{{ asset('admin/images/logoifri.png') }}" alt="logo">
+                <img class="logo-dark logo-img"  src="{{ asset('admin/images/logoifri.png') }}" alt="logo-dark">
+            </a>
+        </div>
+        <div class="nk-menu-trigger me-n2">
+            <a href="#" class="nk-nav-toggle nk-quick-nav-icon d-xl-none" data-target="sidebarMenu">
+                <em class="icon ni ni-arrow-left"></em>
+            </a>
+            <a href="#" class="nk-nav-compact nk-quick-nav-icon d-none d-xl-inline-flex" data-target="sidebarMenu">
+                <em class="icon ni ni-menu"></em>
+            </a>
+        </div>
+    </div>
+
+    <div class="nk-sidebar-element">
+        <div class="nk-sidebar-content">
+            <div class="nk-sidebar-menu" data-simplebar>
+                <ul class="nk-menu">
+
+                    {# ══ Vue générale ══ #}
+                    <li class="nk-menu-heading">
+                        <h6 class="overline-title text-primary-alt">Vue générale</h6>
+                    </li>
+
+                    <li class="nk-menu-item {{ app.request.attributes.get('_route') starts with 'app_admin' or app.request.attributes.get('_route') == 'admin_dashboard_global' ? 'active' : '' }}">
+                        <a href="{{ path('app_admin') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-dashboard-fill"></em></span>
+                            <span class="nk-menu-text">Tableau de bord</span>
+                        </a>
+                    </li>
+
+                    {# <li class="nk-menu-item {{ app.request.attributes.get('_route') starts with 'admin_analytics' ? 'active' : '' }}">
+                        <a href="{{ path('admin_analytics_global') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-bar-chart-fill"></em></span>
+                            <span class="nk-menu-text">Analytics</span>
+                        </a>
+                    </li> #}
+
+                    {# ══ QR Codes ══ #}
+                    <li class="nk-menu-heading">
+                        <h6 class="overline-title text-primary-alt">QR Codes</h6>
+                    </li>
+
+                    <li class="nk-menu-item {{ app.request.attributes.get('_route') == 'admin_qr_generate' ? 'active' : '' }}">
+                        <a href="{{ path('admin_qr_generate') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-plus-circle-fill"></em></span>
+                            <span class="nk-menu-text">Générer un QR Code</span>
+                        </a>
+                    </li>
+
+                    <li class="nk-menu-item {{ app.request.attributes.get('_route') == 'admin_qr_list' ? 'active' : '' }}">
+                        <a href="{{ path('admin_qr_list') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-list-thumb-fill"></em></span>
+                            <span class="nk-menu-text">Mes QR Codes</span>
+                        </a>
+                    </li>
+
+                    {# ══ Abonnements ══ #}
+                    <li class="nk-menu-heading">
+                        <h6 class="overline-title text-primary-alt">Abonnements</h6>
+                    </li>
+
+                    <li class="nk-menu-item {{ app.request.attributes.get('_route') starts with 'admin_plan' ? 'active' : '' }}">
+                        <a href="{{ path('admin_plan_index') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-tag-fill"></em></span>
+                            <span class="nk-menu-text">Plans tarifaires</span>
+                        </a>
+                    </li>
+
+                    {# ══ Administration (ROLE_ADMIN seulement) ══ #}
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <li class="nk-menu-heading">
+                        <h6 class="overline-title text-primary-alt">Administration</h6>
+                    </li>
+
+                    <li class="nk-menu-item has-sub {{ app.request.attributes.get('_route') starts with 'admin_user' ? 'active' : '' }}">
+                        <a href="#" class="nk-menu-link nk-menu-toggle">
+                            <span class="nk-menu-icon"><em class="icon ni ni-users-fill"></em></span>
+                            <span class="nk-menu-text">Utilisateurs</span>
+                        </a>
+                        <ul class="nk-menu-sub">
+                            <li class="nk-menu-item {{ app.request.attributes.get('_route') == 'admin_user_index' ? 'active' : '' }}">
+                                <a href="{{ path('admin_user_index') }}" class="nk-menu-link">
+                                    <span class="nk-menu-icon"><em class="icon ni ni-list-thumb"></em></span>
+                                    <span class="nk-menu-text">Tous les utilisateurs</span>
+                                </a>
+                            </li>
+                            <li class="nk-menu-item {{ app.request.attributes.get('_route') == 'admin_user_new' ? 'active' : '' }}">
+                                <a href="{{ path('admin_user_new') }}" class="nk-menu-link">
+                                    <span class="nk-menu-icon"><em class="icon ni ni-user-add-fill"></em></span>
+                                    <span class="nk-menu-text">Ajouter un utilisateur</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {# ══ Mon compte ══ #}
+                    <li class="nk-menu-heading">
+                        <h6 class="overline-title text-primary-alt">Mon compte</h6>
+                    </li>
+
+                    <li class="nk-menu-item {{ app.request.attributes.get('_route') == 'app_profile' ? 'active' : '' }}">
+                        <a href="{{ path('app_profile') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-user-circle-fill"></em></span>
+                            <span class="nk-menu-text">Mon profil</span>
+                        </a>
+                    </li>
+
+                    <li class="nk-menu-item">
+                        <a href="{{ path('app_logout') }}" class="nk-menu-link">
+                            <span class="nk-menu-icon"><em class="icon ni ni-signout"></em></span>
+                            <span class="nk-menu-text" style="color:#ef4444;font-weight:700">Déconnexion</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+{% block title %} Inscription {% endblock %}
+{% block sidebar %}{% endblock %}
+{% block header %}{% endblock %}
+{% block content_head %}{% endblock %}
+{% block content %}
+    <!-- content @s -->
+    <div class="nk-content ">
+        <div class="nk-block nk-block-middle nk-auth-body wide-xs">
+            <div class="brand-logo pb-4 text-center">
+                <a href="{{ path("inscription") }}" class="logo-link">
+                    <img class="logo-light logo-img logo-img-lg" src={{ asset("admin/images/logoifri.png") }}>
+                    <img class="logo-dark logo-img logo-img-lg" src={{ asset("admin/images/logoifri.png") }}>
+                </a>
+            </div>
+            <div class="card">
+                <div class="card-inner card-inner-lg">
+                    <div class="nk-block-head">
+                        <div class="nk-block-head-content">
+                            <h4 class="nk-block-title text-center">Inscription</h4>
+                            <div class="nk-block-des">
+                                <p class="nk-block-title text-center">Creer votre compte</p>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form_start(form) }}
+                    <div class="form-group">
+                        {{ form_row(form.firstname, {
+                            'label': 'Quel est votre nom',
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'Votre nom(s)'
+                            }
+                        }) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_row(form.lastname, {
+                            'label': 'Quel est votre prénom(s)',
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'Votre prénom(s)'
+                            }
+                        }) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_row(form.email, {
+                            'label': 'Quel est votre email',
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'Votre email'
+                            }
+                        }) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.password.first, null, {
+                            'attr': {
+                                'class': 'form-label'
+                            }
+                        }) }}
+                        <div class="form-control-wrap">
+                            <a href="#" class="form-icon form-icon-right passcode-switch lg" data-target="password-first">
+                                <em class="passcode-icon icon-show icon ni ni-eye"></em>
+                                <em class="passcode-icon icon-hide icon ni ni-eye-off"></em>
+                            </a>
+                            {{ form_widget(form.password.first, {
+                                'attr': {
+                                    'class': 'form-control form-control-lg',
+                                    'type': 'password',
+                                    'placeholder': 'Entrez votre mot de passe'
+                                }
+                            }) }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.password.second, null, {
+                            'attr': {
+                                'class': 'form-label'
+                            }
+                        }) }}
+                        <div class="form-control-wrap">
+                            <a href="#" class="form-icon form-icon-right passcode-switch lg" data-target="password-second">
+                                <em class="passcode-icon icon-show icon ni ni-eye"></em>
+                                <em class="passcode-icon icon-hide icon ni ni-eye-off"></em>
+                            </a>
+                            {{ form_widget(form.password.second, {
+                                'attr': {
+                                    'class': 'form-control form-control-lg',
+                                    'type': 'password',
+                                    'placeholder': 'Confirmez votre mot de passe'
+                                }
+                            }) }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="custom-control custom-control-xs custom-checkbox">
+                            {{ form_widget(form.acceptTerms, {
+                                'attr': {
+                                    'class': 'custom-control-input',
+                                    'id': 'checkbox'
+                                }
+                            }) }}
+                            {{ form_label(form.acceptTerms, null, {
+                                'label_attr': {
+                                    'class': 'custom-control-label',
+                                    'for': 'checkbox'
+                                }
+                            }) }}
+                            {# Affiche les erreurs spécifiques à acceptTerms ici #}
+                            {% for error in form.acceptTerms.vars.errors %}
+                                <div class="text-danger">{{ error.message }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+
+                    <div class="form-note-s2 text-center pt-4">Vous avez déjà un compte ?<a href="{{ path("connexion") }}"><strong>Connectez-vous plutôt</strong></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

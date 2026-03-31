@@ -1,0 +1,17 @@
+<form method="post">
+    <h1 class="h3 mb-3 font-weight-normal"></h1>
+    <label for="inputEmail"> Votre email</label>
+    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" placeholder="Votre adresse email" required autofocus>
+    <label for="inputPassword">Votre mot de passe</label>
+    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" placeholder="Votre mot de passe" required>
+
+    <input type="hidden" name="_csrf_token"
+           value="{{ csrf_token('authenticate') }}"
+    >
+    <button class="btn btn-lg btn-info btn-block mt-3" type="submit">
+        Se connecter
+    </button>
+    <hr>
+    <p class="text-center">Ou souhaitez-vous <a href="{{ path('inscription') }}"> Créer un compte </a>?</p>
+</form>
+</div>

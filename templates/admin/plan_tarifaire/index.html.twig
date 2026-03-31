@@ -1,0 +1,536 @@
+{% extends 'base.html.twig' %}
+{% block title %}Plans Tarifaires{% endblock %}
+
+{% block content_block %}
+<style>
+/* ===== Plans Tarifaires UI ===== */
+:root {
+    --pt-primary: #4f46e5; --pt-primary-light: #e0e7ff;
+    --pt-accent: #06b6d4;  --pt-success: #10b981;
+    --pt-warning: #f59e0b; --pt-danger: #ef4444;
+    --pt-surface: #fff;    --pt-surface-2: #f8fafc;
+    --pt-border: #e2e8f0;  --pt-text: #0f172a;
+    --pt-muted: #64748b;   --pt-radius: 16px; --pt-radius-sm: 10px;
+}
+
+/* Toolbar */
+.pt-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+.pt-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px;
+          border-radius:var(--pt-radius-sm); font-size:13.5px; font-weight:700;
+          cursor:pointer; border:none; text-decoration:none; transition:all .2s; }
+.pt-btn-primary { background:linear-gradient(135deg,var(--pt-primary),var(--pt-accent));
+                  color:#fff; box-shadow:0 4px 14px rgba(79,70,229,.3); }
+.pt-btn-primary:hover { transform:translateY(-2px); color:#fff;
+                        box-shadow:0 6px 20px rgba(79,70,229,.4); }
+
+/* Cards grid */
+.pt-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:20px; }
+
+.pt-plan-card {
+    background:var(--pt-surface); border-radius:var(--pt-radius);
+    border:1px solid var(--pt-border); overflow:hidden;
+    box-shadow:0 4px 20px rgba(79,70,229,.07);
+    transition:transform .2s, box-shadow .2s;
+    display:flex; flex-direction:column;
+}
+.pt-plan-card:hover { transform:translateY(-4px); box-shadow:0 10px 32px rgba(79,70,229,.13); }
+
+.pt-plan-header {
+    padding:24px 24px 16px;
+    background:linear-gradient(135deg, var(--pt-primary-light) 0%, #f0f9ff 100%);
+    border-bottom:1px solid var(--pt-border);
+    position:relative;
+}
+
+.pt-plan-name { font-size:18px; font-weight:800; color:var(--pt-text); margin:0 0 4px; }
+.pt-plan-price {
+    font-size:28px; font-weight:900; color:var(--pt-primary);
+    display:flex; align-items:baseline; gap:4px;
+}
+.pt-plan-price small { font-size:13px; font-weight:500; color:var(--pt-muted); }
+
+.pt-plan-badge {
+    position:absolute; top:16px; right:16px;
+    padding:4px 10px; border-radius:20px;
+    font-size:11px; font-weight:700;
+}
+.badge-avance  { background:#d1fae5; color:#065f46; }
+.badge-basic   { background:var(--pt-surface-2); color:var(--pt-muted); border:1px solid var(--pt-border); }
+
+.pt-plan-body { padding:20px 24px; flex:1; display:flex; flex-direction:column; gap:12px; }
+
+.pt-feature-row { display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--pt-text); }
+.pt-feature-row em { font-size:16px; color:var(--pt-primary); }
+.pt-feature-row strong { margin-left:auto; font-weight:700; }
+
+.pt-divider { height:1px; background:var(--pt-border); margin:4px 0; }
+
+.pt-users-row {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 12px; border-radius:8px; background:var(--pt-surface-2);
+    font-size:12.5px; color:var(--pt-muted); font-weight:600;
+}
+.pt-users-row em { color:var(--pt-accent); }
+
+.pt-plan-actions {
+    display:flex; gap:8px; padding:16px 24px;
+    border-top:1px solid var(--pt-border); background:var(--pt-surface-2);
+}
+
+.pt-action-btn {
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:8px 10px; border-radius:8px; font-size:12.5px; font-weight:700;
+    cursor:pointer; border:1px solid var(--pt-border); background:var(--pt-surface);
+    color:var(--pt-muted); transition:all .18s; text-decoration:none;
+}
+.pt-action-btn:hover { border-color:var(--pt-primary); color:var(--pt-primary); background:var(--pt-primary-light); }
+.pt-action-btn.danger:hover { border-color:var(--pt-danger); color:var(--pt-danger); background:#fef2f2; }
+
+/* Toggle switch */
+.pt-toggle-wrap { display:flex; align-items:center; gap:8px; }
+.pt-toggle {
+    position:relative; width:40px; height:22px;
+    cursor:pointer; flex-shrink:0;
+}
+.pt-toggle input { opacity:0; width:0; height:0; position:absolute; }
+.pt-toggle-slider {
+    position:absolute; inset:0; border-radius:99px;
+    background:var(--pt-border); transition:background .2s;
+}
+.pt-toggle-slider::before {
+    content:''; position:absolute; width:16px; height:16px;
+    border-radius:50%; background:#fff; top:3px; left:3px;
+    transition:transform .2s; box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.pt-toggle input:checked + .pt-toggle-slider { background:var(--pt-success); }
+.pt-toggle input:checked + .pt-toggle-slider::before { transform:translateX(18px); }
+
+/* Empty state */
+.pt-empty { padding:64px 32px; text-align:center; background:var(--pt-surface);
+            border-radius:var(--pt-radius); border:1px solid var(--pt-border); }
+.pt-empty-icon { width:72px; height:72px; border-radius:18px; background:var(--pt-primary-light);
+                 display:flex; align-items:center; justify-content:center;
+                 margin:0 auto 16px; font-size:32px; color:var(--pt-primary); }
+
+/* Toast */
+.pt-toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+.pt-toast {
+    min-width:280px; max-width:380px; padding:14px 18px;
+    border-radius:12px; font-size:13.5px; font-weight:600;
+    display:flex; align-items:center; gap:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.15);
+    animation:toast-in .3s ease;
+    color:#fff;
+}
+.pt-toast-success { background:linear-gradient(135deg,#10b981,#059669); }
+.pt-toast-error   { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.pt-toast-info    { background:linear-gradient(135deg,var(--pt-primary),var(--pt-accent)); }
+@keyframes toast-in { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:none; } }
+
+/* Modal overlay */
+.pt-modal-overlay {
+    position:fixed; inset:0; background:rgba(15,23,42,.55);
+    backdrop-filter:blur(4px); z-index:1050;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s;
+}
+.pt-modal-overlay.open { opacity:1; pointer-events:all; }
+.pt-modal {
+    background:var(--pt-surface); border-radius:var(--pt-radius);
+    width:90%; max-width:520px; max-height:90vh; overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
+    transform:scale(.92) translateY(20px);
+    transition:transform .28s cubic-bezier(.175,.885,.32,1.275);
+}
+.pt-modal-overlay.open .pt-modal { transform:scale(1) translateY(0); }
+.pt-modal-header {
+    padding:20px 24px 16px; border-bottom:1px solid var(--pt-border);
+    display:flex; align-items:center; justify-content:space-between;
+}
+.pt-modal-header h5 { margin:0; font-size:16px; font-weight:800; color:var(--pt-text); }
+.pt-modal-close {
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--pt-border);
+    background:var(--pt-surface-2); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:16px; color:var(--pt-muted); transition:all .18s;
+}
+.pt-modal-close:hover { background:#fef2f2; border-color:var(--pt-danger); color:var(--pt-danger); }
+.pt-modal-body { padding:24px; }
+
+/* Confirm modal */
+.pt-confirm-icon {
+    width:64px; height:64px; border-radius:16px; background:#fef2f2;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px; font-size:28px; color:var(--pt-danger);
+}
+</style>
+
+{# ── Toolbar ── #}
+<div class="pt-toolbar">
+    <div style="flex:1">
+        <span style="font-size:13px;color:var(--pt-muted);font-weight:600">
+            {{ plans|length }} plan{{ plans|length > 1 ? 's' : '' }} tarifaire{{ plans|length > 1 ? 's' : '' }}
+        </span>
+    </div>
+    <button class="pt-btn pt-btn-primary" onclick="openCreateModal()">
+        <em class="icon ni ni-plus"></em> Nouveau plan
+    </button>
+</div>
+
+{# ── Grid ── #}
+{% if plans|length > 0 %}
+<div class="pt-grid" id="plansGrid">
+    {% for plan in plans %}
+    <div class="pt-plan-card" id="plan-card-{{ plan.id }}" data-id="{{ plan.id }}">
+
+        <div class="pt-plan-header">
+            <div class="pt-plan-badge {{ plan.accesAvance ? 'badge-avance' : 'badge-basic' }}">
+                {{ plan.accesAvance ? '⚡ Avancé' : 'Basic' }}
+            </div>
+            <div class="pt-plan-name">{{ plan.nom }}</div>
+            <div class="pt-plan-price">
+                {{ plan.prix|number_format(0, ',', ' ') }}
+                <small>FCFA / mois</small>
+            </div>
+        </div>
+
+        <div class="pt-plan-body">
+            <div class="pt-feature-row">
+                <em class="icon ni ni-qr"></em>
+                Limite QR codes
+                <strong>{{ plan.limiteQR == -1 ? '∞ Illimité' : plan.limiteQR }}</strong>
+            </div>
+            <div class="pt-divider"></div>
+            <div class="pt-feature-row">
+                <em class="icon ni ni-shield-check"></em>
+                Fonctions avancées
+                <strong>
+                    {% if plan.accesAvance %}
+                        <span style="color:#10b981">✓ Oui</span>
+                    {% else %}
+                        <span style="color:var(--pt-muted)">— Non</span>
+                    {% endif %}
+                </strong>
+            </div>
+            <div class="pt-divider"></div>
+
+            <div class="pt-users-row">
+                <em class="icon ni ni-users"></em>
+                <span id="nb-users-{{ plan.id }}">{{ plan.users|length }}</span>
+                utilisateur(s) abonné(s)
+            </div>
+
+            {# Toggle accès avancé #}
+            <div class="pt-toggle-wrap" style="margin-top:4px">
+                <label class="pt-toggle" title="Basculer l'accès avancé">
+                    <input type="checkbox"
+                           id="toggle-{{ plan.id }}"
+                           {{ plan.accesAvance ? 'checked' : '' }}
+                           onchange="toggleAvance({{ plan.id }}, this)">
+                    <span class="pt-toggle-slider"></span>
+                </label>
+                <span style="font-size:12.5px;color:var(--pt-muted);font-weight:600"
+                      id="toggle-label-{{ plan.id }}">
+                    Accès avancé {{ plan.accesAvance ? 'activé' : 'désactivé' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="pt-plan-actions">
+            <button class="pt-action-btn"
+                    onclick="openEditModal({{ plan.id }})"
+                    title="Modifier">
+                <em class="icon ni ni-edit"></em> Modifier
+            </button>
+            <button class="pt-action-btn danger"
+                    onclick="openDeleteConfirm({{ plan.id }}, '{{ plan.nom|escape('js') }}', {{ plan.users|length }})"
+                    title="Supprimer">
+                <em class="icon ni ni-trash"></em> Supprimer
+            </button>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="pt-empty" id="plansGrid">
+    <div class="pt-empty-icon"><em class="icon ni ni-tag-fill"></em></div>
+    <h5 style="font-size:17px;font-weight:800;margin:0 0 8px">Aucun plan tarifaire</h5>
+    <p style="color:var(--pt-muted);margin:0 0 20px;font-size:14px">
+        Créez votre premier plan pour permettre aux utilisateurs de s'abonner.
+    </p>
+    <button class="pt-btn pt-btn-primary" onclick="openCreateModal()">
+        <em class="icon ni ni-plus"></em> Créer un plan
+    </button>
+</div>
+{% endif %}
+
+{# ── Toast container ── #}
+<div class="pt-toast-container" id="toastContainer"></div>
+
+{# ── Form Modal ── #}
+<div class="pt-modal-overlay" id="formModal" onclick="closeModalOnOverlay(event,'formModal')">
+    <div class="pt-modal">
+        <div class="pt-modal-header">
+            <h5 id="formModalTitle">Plan tarifaire</h5>
+            <button class="pt-modal-close" onclick="closeModal('formModal')">
+                <em class="icon ni ni-cross"></em>
+            </button>
+        </div>
+        <div class="pt-modal-body" id="formModalBody">
+            {# chargé en AJAX #}
+        </div>
+    </div>
+</div>
+
+{# ── Delete Confirm Modal ── #}
+<div class="pt-modal-overlay" id="deleteModal" onclick="closeModalOnOverlay(event,'deleteModal')">
+    <div class="pt-modal" style="max-width:400px">
+        <div class="pt-modal-body" style="text-align:center;padding:32px 28px">
+            <div class="pt-confirm-icon"><em class="icon ni ni-trash"></em></div>
+            <h5 style="font-size:17px;font-weight:800;margin:0 0 8px" id="deleteModalTitle">
+                Supprimer ce plan ?
+            </h5>
+            <p style="font-size:13.5px;color:var(--pt-muted);margin:0 0 24px" id="deleteModalMsg"></p>
+            <div style="display:flex;gap:10px">
+                <button onclick="closeModal('deleteModal')"
+                        style="flex:1;padding:11px;border-radius:9px;border:1px solid var(--pt-border);
+                               background:var(--pt-surface-2);font-size:13.5px;font-weight:700;
+                               cursor:pointer;color:var(--pt-muted)">
+                    Annuler
+                </button>
+                <button id="deleteConfirmBtn"
+                        style="flex:1;padding:11px;border-radius:9px;border:none;
+                               background:linear-gradient(135deg,#ef4444,#dc2626);
+                               color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;
+                               box-shadow:0 4px 14px rgba(239,68,68,.35)">
+                    <em class="icon ni ni-trash"></em> Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const ROUTES = {
+    new    : "{{ path('admin_plan_new') }}",
+    edit   : (id) => `/admin/plans/${id}/edit`,
+    delete : (id) => `/admin/plans/${id}/delete`,
+    toggle : (id) => `/admin/plans/${id}/toggle`,
+};
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(message, type = 'success') {
+    const icons = { success: 'ni-check-circle-fill', error: 'ni-alert-circle-fill', info: 'ni-info-fill' };
+    const toast = document.createElement('div');
+    toast.className = `pt-toast pt-toast-${type}`;
+    toast.innerHTML = `<em class="icon ${icons[type] ?? icons.info}"></em> ${message}`;
+    document.getElementById('toastContainer').appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// ── Modal helpers ──────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOnOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') ['formModal','deleteModal'].forEach(closeModal); });
+
+// ── Ouvrir modale création ─────────────────────────────────
+function openCreateModal() {
+    document.getElementById('formModalTitle').textContent = 'Nouveau plan tarifaire';
+    document.getElementById('formModalBody').innerHTML =
+        '<div style="text-align:center;padding:32px"><div class="spinner-border" style="color:var(--pt-primary)"></div></div>';
+    openModal('formModal');
+
+    fetch(ROUTES.new, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('formModalBody').innerHTML = d.html;
+            bindFormSubmit(ROUTES.new, 'create');
+        });
+}
+
+// ── Ouvrir modale édition ──────────────────────────────────
+function openEditModal(id) {
+    document.getElementById('formModalTitle').textContent = 'Modifier le plan';
+    document.getElementById('formModalBody').innerHTML =
+        '<div style="text-align:center;padding:32px"><div class="spinner-border" style="color:var(--pt-primary)"></div></div>';
+    openModal('formModal');
+
+    fetch(ROUTES.edit(id), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('formModalTitle').textContent = d.title ?? 'Modifier';
+            document.getElementById('formModalBody').innerHTML = d.html;
+            bindFormSubmit(ROUTES.edit(id), 'edit', id);
+        });
+}
+
+// ── Bind soumission formulaire AJAX ───────────────────────
+function bindFormSubmit(url, mode, planId = null) {
+    const form = document.querySelector('#formModalBody form');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const btn = form.querySelector('[type=submit]');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enregistrement…';
+
+        fetch(url, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('formModal');
+                showToast(data.message, 'success');
+                if (mode === 'create') addCardToGrid(data.plan);
+                else                   updateCard(data.plan);
+            } else {
+                showToast(data.message ?? 'Formulaire invalide.', 'error');
+                if (data.errors) {
+                    const errDiv = document.createElement('div');
+                    errDiv.style.cssText = 'background:#fef2f2;border-radius:8px;padding:12px 14px;margin-top:12px;font-size:13px;color:#7f1d1d';
+                    errDiv.innerHTML = data.errors.map(e => `• ${e}`).join('<br>');
+                    form.prepend(errDiv);
+                }
+                btn.disabled = false;
+                btn.innerHTML = 'Enregistrer';
+            }
+        })
+        .catch(() => { showToast('Erreur réseau.', 'error'); btn.disabled = false; });
+    });
+}
+
+// ── Ajouter carte dynamiquement ───────────────────────────
+function addCardToGrid(plan) {
+    const grid = document.getElementById('plansGrid');
+    // Retire empty state si présent
+    grid.className = 'pt-grid';
+    grid.innerHTML = grid.innerHTML.replace(/<div class="pt-empty.*$/s, '');
+
+    const card = buildCard(plan);
+    grid.insertAdjacentHTML('beforeend', card);
+}
+
+// ── Mettre à jour une carte ───────────────────────────────
+function updateCard(plan) {
+    const card = document.getElementById(`plan-card-${plan.id}`);
+    if (card) card.outerHTML = buildCard(plan);
+}
+
+function buildCard(p) {
+    const prix = new Intl.NumberFormat('fr-FR').format(p.prix);
+    const avanceBadge = p.accesAvance
+        ? '<span class="pt-plan-badge badge-avance">⚡ Avancé</span>'
+        : '<span class="pt-plan-badge badge-basic">Basic</span>';
+    const avanceText = p.accesAvance
+        ? '<strong><span style="color:#10b981">✓ Oui</span></strong>'
+        : '<strong><span style="color:var(--pt-muted)">— Non</span></strong>';
+    const limiteLabel = p.limiteQR === -1 ? '∞ Illimité' : p.limiteQR;
+
+    return `
+    <div class="pt-plan-card" id="plan-card-${p.id}" data-id="${p.id}">
+      <div class="pt-plan-header">
+        ${avanceBadge}
+        <div class="pt-plan-name">${p.nom}</div>
+        <div class="pt-plan-price">${prix} <small>FCFA / mois</small></div>
+      </div>
+      <div class="pt-plan-body">
+        <div class="pt-feature-row"><em class="icon ni ni-qr"></em> Limite QR codes <strong>${limiteLabel}</strong></div>
+        <div class="pt-divider"></div>
+        <div class="pt-feature-row"><em class="icon ni ni-shield-check"></em> Fonctions avancées ${avanceText}</div>
+        <div class="pt-divider"></div>
+        <div class="pt-users-row"><em class="icon ni ni-users"></em>
+          <span id="nb-users-${p.id}">${p.nbUsers}</span> utilisateur(s) abonné(s)
+        </div>
+        <div class="pt-toggle-wrap" style="margin-top:4px">
+          <label class="pt-toggle">
+            <input type="checkbox" id="toggle-${p.id}" ${p.accesAvance ? 'checked' : ''}
+                   onchange="toggleAvance(${p.id}, this)">
+            <span class="pt-toggle-slider"></span>
+          </label>
+          <span style="font-size:12.5px;color:var(--pt-muted);font-weight:600" id="toggle-label-${p.id}">
+            Accès avancé ${p.accesAvance ? 'activé' : 'désactivé'}
+          </span>
+        </div>
+      </div>
+      <div class="pt-plan-actions">
+        <button class="pt-action-btn" onclick="openEditModal(${p.id})">
+          <em class="icon ni ni-edit"></em> Modifier
+        </button>
+        <button class="pt-action-btn danger" onclick="openDeleteConfirm(${p.id}, '${p.nom}', ${p.nbUsers})">
+          <em class="icon ni ni-trash"></em> Supprimer
+        </button>
+      </div>
+    </div>`;
+}
+
+// ── Toggle accès avancé ───────────────────────────────────
+function toggleAvance(id, checkbox) {
+    fetch(ROUTES.toggle(id), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`toggle-label-${id}`).textContent =
+                'Accès avancé ' + (data.accesAvance ? 'activé' : 'désactivé');
+            showToast(data.message, 'success');
+        } else {
+            checkbox.checked = !checkbox.checked; // rollback
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+// ── Confirm suppression ───────────────────────────────────
+function openDeleteConfirm(id, nom, nbUsers) {
+    document.getElementById('deleteModalTitle').textContent = `Supprimer « ${nom} » ?`;
+    document.getElementById('deleteModalMsg').textContent = nbUsers > 0
+        ? `⚠️ ${nbUsers} utilisateur(s) sont sur ce plan. La suppression est impossible.`
+        : `Cette action est irréversible. Le plan sera définitivement supprimé.`;
+
+    const btn = document.getElementById('deleteConfirmBtn');
+    if (nbUsers > 0) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    } else {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.onclick = () => deletePlan(id, nom);
+    }
+    openModal('deleteModal');
+}
+
+function deletePlan(id, nom) {
+    const btn = document.getElementById('deleteConfirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Suppression…';
+
+    const fd = new FormData();
+    fd.append('_token', '{{ csrf_token("delete_plan_") }}' + id);
+
+    fetch(ROUTES.delete(id), {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        closeModal('deleteModal');
+        if (data.success) {
+            document.getElementById(`plan-card-${id}`)?.remove();
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<em class="icon ni ni-trash"></em> Supprimer';
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard global{% endblock %}
+{% block page_title %}Dashboard global{% endblock %}
+{% block page_description %}Vue d'ensemble de toute la plateforme{% endblock %}
+
+{% block content_block %}
+<style>
+.dg-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.dg-stat  { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:20px 22px; display:flex; align-items:center; gap:16px; }
+.dg-icon  { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.dg-icon.indigo { background:#e0e7ff; color:#4f46e5; }
+.dg-icon.green  { background:#d1fae5; color:#059669; }
+.dg-icon.orange { background:#ffedd5; color:#ea580c; }
+.dg-val   { font-size:28px; font-weight:900; color:#0f172a; line-height:1; }
+.dg-label { font-size:12px; font-weight:600; color:#64748b; margin-top:3px; }
+.dg-sub   { font-size:11px; color:#94a3b8; margin-top:2px; }
+.dg-card  { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; margin-bottom:20px; }
+.dg-head  { padding:16px 20px; border-bottom:1px solid #e2e8f0; }
+.dg-head h5 { margin:0; font-size:14px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+.dg-body  { padding:20px; }
+.dg-chart { height:220px; position:relative; }
+.dg-table { width:100%; border-collapse:collapse; font-size:13px; }
+.dg-table th { text-align:left; padding:9px 14px; border-bottom:2px solid #e2e8f0; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#64748b; background:#f8fafc; }
+.dg-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; }
+.dg-table tr:last-child td { border-bottom:none; }
+.dg-table tr:hover td { background:#f8fafc; }
+.dg-avatar { width:32px; height:32px; border-radius:50%; background:#e0e7ff; color:#4f46e5; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+.dg-badge-actif    { background:#d1fae5; color:#065f46; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; }
+.dg-badge-suspendu { background:#fef2f2; color:#991b1b; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; }
+@media(max-width:900px) { .dg-stats { grid-template-columns:repeat(2,1fr); } }
+</style>
+
+{# ── KPIs ── #}
+<div class="dg-stats">
+    <div class="dg-stat">
+        <div class="dg-icon indigo"><em class="icon ni ni-users-fill"></em></div>
+        <div>
+            <div class="dg-val">{{ totalUsers|default(0) }}</div>
+            <div class="dg-label">Utilisateurs total</div>
+            <div class="dg-sub">{{ activeUsers|default(0) }} actifs</div>
+        </div>
+    </div>
+    <div class="dg-stat">
+        <div class="dg-icon green"><em class="icon ni ni-qr"></em></div>
+        <div>
+            <div class="dg-val">{{ totalQr|default(0) }}</div>
+            <div class="dg-label">QR Codes créés</div>
+            <div class="dg-sub">{{ activeQr|default(0) }} actifs</div>
+        </div>
+    </div>
+    <div class="dg-stat">
+        <div class="dg-icon orange"><em class="icon ni ni-scan"></em></div>
+        <div>
+            <div class="dg-val">{{ totalScans|default(0) }}</div>
+            <div class="dg-label">Scans totaux</div>
+            <div class="dg-sub">{{ todayScans|default(0) }} aujourd'hui</div>
+        </div>
+    </div>
+</div>
+
+{# ── Courbe 30j ── #}
+<div class="dg-card">
+    <div class="dg-head"><h5><em class="icon ni ni-trend-up"></em> Activité de la plateforme (30 jours)</h5></div>
+    <div class="dg-body">
+        <div class="dg-chart"><canvas id="chartGlobal"></canvas></div>
+    </div>
+</div>
+
+{# ── Derniers inscrits ── #}
+<div class="dg-card">
+    <div class="dg-head"><h5><em class="icon ni ni-user-add-fill"></em> Derniers utilisateurs inscrits</h5></div>
+    <div class="dg-body" style="padding:0">
+        <table class="dg-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in lastUsers|default([]) %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div class="dg-avatar">{{ user.nom|slice(0,1)|upper }}</div>
+                            <strong>{{ user.nom }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if 'ROLE_ADMIN' in user.roles %}
+                            <span style="background:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">Admin</span>
+                        {% else %}
+                            <span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700">User</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="dg-badge-{{ user.statut ?? 'actif' }}">
+                            {{ user.statut == 'suspendu' ? '⛔ Suspendu' : '✅ Actif' }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ path('admin_user_show', {id: user.id}) }}"
+                           style="padding:5px 10px;background:#e0e7ff;color:#4f46e5;border-radius:7px;font-size:11px;font-weight:700;text-decoration:none">
+                            <em class="icon ni ni-eye"></em> Voir
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align:center;padding:30px;color:#94a3b8">
+                        Aucun utilisateur inscrit.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('chartGlobal'), {
+    type: 'bar',
+    data: {
+        labels: {{ labels|default([])|json_encode|raw }},
+        datasets: [{
+            label: 'Scans',
+            data: {{ values|default([])|json_encode|raw }},
+            backgroundColor: 'rgba(79,70,229,.75)',
+            borderRadius: 5,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
+            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: '#f1f5f9' } }
+        }
+    }
+});
+</script>
+{% endblock %}

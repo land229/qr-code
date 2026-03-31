@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Depense{% endblock %}
+
+{% block body %}
+    <h1>Depense</h1>
+
+    <table class="table">
+        <tbody>
+        <tr>
+            <th>Id</th>
+            <td>{{ depense.id }}</td>
+        </tr>
+        <tr>
+            <th>Libelle</th>
+            <td>{{ depense.libelle }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ depense.description }}</td>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <td>{{ depense.date ? depense.date|date('Y-m-d H:i:s') : '' }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_depense_index') }}">back to list</a>
+
+    <a href="{{ path('app_depense_edit', {'id': depense.id}) }}">edit</a>
+
+    {{ include('depense/_delete_form.html.twig') }}
+{% endblock %}

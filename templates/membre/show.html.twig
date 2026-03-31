@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+{% block title %} Detail - membres {% endblock %}
+
+{% block content %}
+    <div class="nk-content ">
+        {% block content_fluid %}
+            <div class="container-fluid">
+                {% block content_inner %}
+                    <div class="nk-content-body">
+                        {% embed 'admin/_partials/page_content.html.twig' %}
+                            {% block page_title %}
+                                Membre {{ membre.prenom }}
+                            {% endblock %}
+                            {% block page_description %}
+                                Détail de  {{ membre.nom }} {{ membre.prenom }} de AFADOPA
+                            {% endblock %}
+                            {% block actions %}
+                                <li><a href="{{ path('app_membre_index') }}"><button class="btn btn-primary">Retour</button></a></li>
+                                <li><a href="{{ path('app_membre_edit', {'id': membre.id}) }}"><button class="btn btn-primary">Modifier</button></a></li>
+                                <li> {{ include('membre/_delete_form.html.twig') }}</li>
+                            {% endblock %}
+                        {% endembed %}
+                        {% block content_block %}
+                            <table class="table">
+                                <tbody>
+                                <tr>
+                                    <th>Id</th>
+                                    <td>{{ membre.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nom</th>
+                                    <td>{{ membre.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Prenom</th>
+                                    <td>{{ membre.prenom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Telephone</th>
+                                    <td>{{ membre.telephone }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ membre.email }}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        {% endblock %}
+                    </div>
+                {% endblock %}
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics Global{% endblock %}
+{% block page_title %}Analytics Global{% endblock %}
+{% block page_description %}Vue d'ensemble de tous vos QR codes{% endblock %}
+
+{% block actions %}
+    <li>
+        <a href="{{ path('admin_qr_list') }}" class="btn btn-white btn-dim btn-outline-primary">
+            <em class="icon ni ni-qr"></em>
+            <span>Mes QR Codes</span>
+        </a>
+    </li>
+{% endblock %}
+
+{% block content_block %}
+<style>
+:root {
+    --ag-primary: #4f46e5; --ag-primary-light: #e0e7ff;
+    --ag-success: #10b981; --ag-warning: #f59e0b;
+    --ag-surface: #fff; --ag-surface-2: #f8fafc;
+    --ag-border: #e2e8f0; --ag-text: #0f172a; --ag-muted: #64748b;
+    --ag-radius: 14px;
+}
+.ag-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.ag-stat { background:var(--ag-surface); border:1px solid var(--ag-border); border-radius:var(--ag-radius); padding:20px 22px; display:flex; align-items:center; gap:16px; }
+.ag-stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.ag-stat-icon.indigo { background:#e0e7ff; color:#4f46e5; }
+.ag-stat-icon.green  { background:#d1fae5; color:#059669; }
+.ag-stat-icon.amber  { background:#fef3c7; color:#d97706; }
+.ag-stat-val   { font-size:28px; font-weight:900; color:var(--ag-text); line-height:1; }
+.ag-stat-label { font-size:12px; font-weight:600; color:var(--ag-muted); margin-top:3px; }
+.ag-card { background:var(--ag-surface); border:1px solid var(--ag-border); border-radius:var(--ag-radius); overflow:hidden; margin-bottom:20px; }
+.ag-card-head { padding:16px 20px; border-bottom:1px solid var(--ag-border); }
+.ag-card-head h5 { margin:0; font-size:14px; font-weight:800; color:var(--ag-text); display:flex; align-items:center; gap:8px; }
+.ag-card-body { padding:20px; }
+.ag-chart-wrap { position:relative; height:240px; }
+.ag-top-table { width:100%; border-collapse:collapse; font-size:13px; }
+.ag-top-table th { text-align:left; padding:9px 14px; border-bottom:2px solid var(--ag-border); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--ag-muted); }
+.ag-top-table td { padding:10px 14px; border-bottom:1px solid var(--ag-border); }
+.ag-top-table tr:last-child td { border-bottom:none; }
+.ag-top-table tr:hover td { background:var(--ag-surface-2); }
+.ag-bar-wrap { display:flex; align-items:center; gap:10px; }
+.ag-bar-bg { flex:1; height:6px; background:var(--ag-border); border-radius:99px; overflow:hidden; }
+.ag-bar-fill { height:100%; background:var(--ag-primary); border-radius:99px; transition:width .5s; }
+.ag-type-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; background:var(--ag-primary-light); color:var(--ag-primary); }
+.ag-qr-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.ag-qr-card { border:1px solid var(--ag-border); border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:12px; transition:box-shadow .2s; cursor:pointer; }
+.ag-qr-card:hover { box-shadow:0 4px 16px rgba(79,70,229,.12); }
+.ag-qr-icon { width:36px; height:36px; border-radius:8px; background:var(--ag-primary-light); color:var(--ag-primary); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.ag-qr-name { font-size:13px; font-weight:700; color:var(--ag-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ag-qr-scans { font-size:12px; color:var(--ag-muted); }
+@media(max-width:900px) { .ag-stats { grid-template-columns:1fr 1fr; } .ag-qr-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:600px) { .ag-stats { grid-template-columns:1fr; } .ag-qr-grid { grid-template-columns:1fr; } }
+</style>
+
+{# KPIs globaux #}
+<div class="ag-stats">
+    <div class="ag-stat">
+        <div class="ag-stat-icon indigo"><em class="icon ni ni-scan"></em></div>
+        <div>
+            <div class="ag-stat-val">{{ globalStats.total }}</div>
+            <div class="ag-stat-label">Scans au total</div>
+        </div>
+    </div>
+    <div class="ag-stat">
+        <div class="ag-stat-icon green"><em class="icon ni ni-calender-date"></em></div>
+        <div>
+            <div class="ag-stat-val">{{ globalStats.today }}</div>
+            <div class="ag-stat-label">Scans aujourd'hui</div>
+        </div>
+    </div>
+    <div class="ag-stat">
+        <div class="ag-stat-icon amber"><em class="icon ni ni-calender-check"></em></div>
+        <div>
+            <div class="ag-stat-val">{{ globalStats.week }}</div>
+            <div class="ag-stat-label">Scans cette semaine</div>
+        </div>
+    </div>
+</div>
+
+{# Courbe 30j globale #}
+<div class="ag-card">
+    <div class="ag-card-head"><h5><em class="icon ni ni-trend-up"></em> Évolution globale (30 jours)</h5></div>
+    <div class="ag-card-body">
+        <div class="ag-chart-wrap"><canvas id="chartGlobal"></canvas></div>
+    </div>
+</div>
+
+{# Top QR codes + QR grid #}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+    <div class="ag-card" style="margin-bottom:0">
+        <div class="ag-card-head"><h5><em class="icon ni ni-trophy"></em> Top QR Codes</h5></div>
+        <div class="ag-card-body" style="padding:0">
+            {% if topQrCodes is empty %}
+                <p style="padding:20px;text-align:center;color:var(--ag-muted);font-size:13px">Aucune donnée</p>
+            {% else %}
+            {% set maxScans = topQrCodes|map(r => r.totalScans)|max %}
+            <table class="ag-top-table">
+                <thead><tr><th>QR Code</th><th>Scans</th></tr></thead>
+                <tbody>
+                {% for row in topQrCodes %}
+                <tr onclick="window.location='{{ path('admin_analytics_qr', {id: row.id}) }}'" style="cursor:pointer">
+                    <td>
+                        <div style="font-weight:700;font-size:13px">{{ row.titre }}</div>
+                        <span class="ag-type-badge">{{ row.type|upper }}</span>
+                    </td>
+                    <td>
+                        <div class="ag-bar-wrap">
+                            <span style="font-weight:800;font-size:13px;color:var(--ag-primary)">{{ row.totalScans }}</span>
+                            <div class="ag-bar-bg">
+                                <div class="ag-bar-fill" style="width:{{ maxScans > 0 ? ((row.totalScans / maxScans) * 100)|round : 0 }}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="ag-card" style="margin-bottom:0">
+        <div class="ag-card-head"><h5><em class="icon ni ni-qr"></em> QR Codes actifs ({{ qrStats.active }})</h5></div>
+        <div class="ag-card-body">
+            <div class="ag-qr-grid">
+                {% for row in topQrCodes %}
+                <a href="{{ path('admin_analytics_qr', {id: row.id}) }}" style="text-decoration:none">
+                    <div class="ag-qr-card">
+                        <div class="ag-qr-icon"><em class="icon ni ni-bar-chart-alt-2"></em></div>
+                        <div style="min-width:0">
+                            <div class="ag-qr-name">{{ row.titre }}</div>
+                            <div class="ag-qr-scans"><strong>{{ row.totalScans }}</strong> scan{{ row.totalScans > 1 ? 's' : '' }}</div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const labels = {{ labels|json_encode|raw }};
+const values = {{ values|json_encode|raw }};
+
+new Chart(document.getElementById('chartGlobal'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [{
+            label: 'Scans',
+            data: values,
+            backgroundColor: 'rgba(79,70,229,.75)',
+            borderRadius: 5,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
+            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: '#f1f5f9' } }
+        }
+    }
+});
+</script>
+{% endblock %}

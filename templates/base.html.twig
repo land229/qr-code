@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr" class="js">
+<head>
+    {% include 'admin/_partials/tags/meta_tag.html.twig' %}
+    <title>
+        Géneration de Qr Code {% if block('title') is not empty %}•{% endif %} {% block title %}Bienvenu !{% endblock %}
+    </title>
+    {% include 'admin/_partials/tags/link_tag.html.twig' %}
+</head>
+<body class="nk-body bg-lighter npc-default has-sidebar">
+<div class="nk-app-root">
+
+    {# ── main @s ── #}
+    <div class="nk-main">
+
+        {# ── sidebar @s ── #}
+        {% block sidebar %}
+            {% include 'admin/_partials/sidebar.html.twig' %}
+        {% endblock %}
+        {# ── sidebar @e ── #}
+
+        {# ── wrap @s ── #}
+        <div class="nk-wrap">
+
+            {# ── header @s ── #}
+            {% block header %}
+                {% include 'admin/_partials/header.html.twig' %}
+            {% endblock %}
+            {# ── header @e ── #}
+
+            {# ── content @s ── #}
+            {% block content %}
+            <div class="nk-content">
+                {% block content_fluid %}
+                <div class="container-fluid">
+                    {% block content_inner %}
+                    <div class="nk-content-body">
+
+                        {# ── Page head : titre + description + actions ── #}
+                        <div class="nk-block-head nk-block-head-sm">
+                            <div class="nk-block-between">
+
+                                <div class="nk-block-head-content">
+                                    <h5 class="nk-block-title page-title">
+                                        {% block page_title %}{% endblock %}
+                                    </h5>
+                                    <div class="nk-block-des text-soft">
+                                        <p>{% block page_description %}{% endblock %}</p>
+                                    </div>
+                                </div>
+                                {# .nk-block-head-content #}
+
+                                <div class="nk-block-head-content">
+                                    <div class="toggle-wrap nk-block-tools-toggle">
+                                        <a href="#"
+                                           class="btn btn-icon btn-trigger toggle-expand me-n1"
+                                           data-target="pageMenu">
+                                            <em class="icon ni ni-more-v"></em>
+                                        </a>
+                                        <div class="toggle-expand-content" data-content="pageMenu">
+                                            <ul class="nk-block-tools g-3">
+                                                {% block actions %}{% endblock %}
+                                            </ul>
+                                        </div>
+                                        {# .toggle-expand-content #}
+                                    </div>
+                                    {# .toggle-wrap #}
+                                </div>
+                                {# .nk-block-head-content #}
+
+                            </div>
+                            {# .nk-block-between #}
+                        </div>
+                        {# .nk-block-head #}
+
+                        {# ── Contenu principal de la page ── #}
+                        {% block content_block %}{% endblock %}
+
+                    </div>
+                    {# .nk-content-body #}
+                    {% endblock %}{# content_inner #}
+                </div>
+                {# .container-fluid #}
+                {% endblock %}{# content_fluid #}
+            </div>
+            {# .nk-content #}
+            {% endblock %}{# content #}
+
+            {# ── footer @s ── #}
+            {% include 'admin/_partials/footer.html.twig' %}
+            {# ── footer @e ── #}
+
+        </div>
+        {# ── wrap @e ── #}
+
+    </div>
+    {# ── main @e ── #}
+
+</div>
+{# .nk-app-root #}
+
+{# ── Modals globales ── #}
+{% block modal %}
+    {% include 'admin/_partials/modal.html.twig' %}
+{% endblock %}
+
+{% include 'admin/_partials/tags/script_tag.html.twig' %}
+</body>
+</html>

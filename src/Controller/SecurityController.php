@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+
+class SecurityController extends AbstractController
+{
+    #[Route(path: '/succes-connexion', name: 'compte')]
+    public function connecter(): Response
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('Vous devez être connecté pour accéder à cette page.');
+        }
+        $roles = $user->getRoles();
+        if ($this->isGranted("ROLE_ADMIN")){
+            return $this->redirectToRoute('app_admin');
+        }
+        return $this->redirectToRoute('connexion');
+
+    }
+    #[Route(path: '/', name: 'connexion')]
+    public function login(AuthenticationUtils $authenticationUtils): Response
+    {
+         if ($this->getUser()) {
+             return $this->redirectToRoute('compte');
+        }
+
+        // get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+        // last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+    }
+
+    #[Route(path: '/deconnexion', name: 'app_logout')]
+    public function logout(): void
+    {
+        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+}

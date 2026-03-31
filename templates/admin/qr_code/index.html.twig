@@ -1,0 +1,321 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes QR Codes{% endblock %}
+{% block page_title %}Mes QR Codes{% endblock %}
+{% block page_description %}Gérez et suivez vos QR codes{% endblock %}
+
+{% block actions %}
+    <li>
+        <a href="{{ path('admin_qr_generate') }}" class="btn btn-primary">
+            <em class="icon ni ni-plus"></em>
+            <span>Nouveau QR Code</span>
+        </a>
+    </li>
+{% endblock %}
+
+{% block content_block %}
+<style>
+:root {
+    --qi-primary: #4f46e5; --qi-primary-light: #e0e7ff;
+    --qi-success: #10b981; --qi-danger: #ef4444;
+    --qi-surface: #fff; --qi-surface-2: #f8fafc;
+    --qi-border: #e2e8f0; --qi-text: #0f172a; --qi-muted: #64748b;
+    --qi-radius: 14px; --qi-radius-sm: 9px;
+}
+.qi-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.qi-stat  { background:var(--qi-surface); border:1px solid var(--qi-border); border-radius:var(--qi-radius); padding:18px 20px; display:flex; align-items:center; gap:14px; }
+.qi-stat-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.qi-stat-icon.blue   { background:#e0e7ff; color:#4f46e5; }
+.qi-stat-icon.green  { background:#d1fae5; color:#059669; }
+.qi-stat-icon.orange { background:#ffedd5; color:#ea580c; }
+.qi-stat-icon.cyan   { background:#cffafe; color:#0891b2; }
+.qi-stat-val   { font-size:22px; font-weight:900; color:var(--qi-text); line-height:1; }
+.qi-stat-label { font-size:12px; font-weight:600; color:var(--qi-muted); margin-top:3px; }
+.qi-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+.qi-search  { display:flex; align-items:center; gap:8px; padding:8px 14px; background:var(--qi-surface); border:1.5px solid var(--qi-border); border-radius:var(--qi-radius-sm); flex:1; min-width:200px; }
+.qi-search input { border:none; outline:none; font-size:13.5px; color:var(--qi-text); background:transparent; width:100%; }
+.qi-search em { color:var(--qi-muted); font-size:16px; }
+.qi-filter { padding:8px 14px; border:1.5px solid var(--qi-border); border-radius:var(--qi-radius-sm); background:var(--qi-surface); font-size:13px; color:var(--qi-text); cursor:pointer; outline:none; }
+.qi-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:18px; }
+.qi-card { background:var(--qi-surface); border:1px solid var(--qi-border); border-radius:var(--qi-radius); overflow:hidden; transition:box-shadow .2s, transform .2s; position:relative; }
+.qi-card:hover { box-shadow:0 8px 30px rgba(79,70,229,.12); transform:translateY(-3px); }
+.qi-card-badge { position:absolute; top:12px; left:12px; padding:3px 9px; border-radius:99px; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; z-index:2; }
+.qi-card-badge.active   { background:#d1fae5; color:#065f46; }
+.qi-card-badge.inactive { background:#fef2f2; color:#991b1b; }
+.qi-card-type { position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:7px; background:var(--qi-primary-light); color:var(--qi-primary); font-size:14px; display:flex; align-items:center; justify-content:center; z-index:2; }
+.qi-card-img { background:var(--qi-surface-2); padding:20px; display:flex; align-items:center; justify-content:center; border-bottom:1px solid var(--qi-border); min-height:160px; }
+.qi-card-img img { width:120px; height:120px; object-fit:contain; border-radius:6px; }
+.qi-card-img-ph { display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--qi-muted); }
+.qi-card-img-ph em { font-size:40px; opacity:.25; }
+.qi-card-img-ph span { font-size:11px; font-weight:600; }
+.qi-card-body { padding:14px 16px; }
+.qi-card-title { font-size:14px; font-weight:800; color:var(--qi-text); margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qi-card-meta  { font-size:11.5px; color:var(--qi-muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.qi-card-scans { display:flex; align-items:center; gap:6px; margin-top:10px; padding:8px 10px; background:var(--qi-surface-2); border-radius:var(--qi-radius-sm); }
+.qi-card-scans-val   { font-size:18px; font-weight:900; color:var(--qi-primary); }
+.qi-card-scans-label { font-size:11px; font-weight:600; color:var(--qi-muted); }
+.qi-card-scans-bar   { flex:1; height:4px; background:var(--qi-border); border-radius:99px; overflow:hidden; margin-left:auto; width:60px; }
+.qi-card-scans-fill  { height:100%; background:var(--qi-primary); border-radius:99px; }
+.qi-card-actions { display:flex; gap:6px; padding:10px 16px; border-top:1px solid var(--qi-border); }
+.qi-card-btn { flex:1; padding:7px 4px; border:none; border-radius:7px; font-size:11.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:all .15s; }
+.qi-btn-dl  { background:#d1fae5; color:#065f46; }
+.qi-btn-dl:hover  { background:#10b981; color:#fff; }
+.qi-btn-dup { background:#f1f5f9; color:var(--qi-muted); }
+.qi-btn-dup:hover { background:#e2e8f0; color:var(--qi-text); }
+.qi-btn-del { background:#fef2f2; color:var(--qi-danger); }
+.qi-btn-del:hover { background:var(--qi-danger); color:#fff; }
+.qi-toggle { position:relative; display:inline-flex; align-items:center; gap:7px; cursor:pointer; }
+.qi-toggle input { opacity:0; width:0; height:0; position:absolute; }
+.qi-toggle-track { width:36px; height:20px; background:var(--qi-border); border-radius:99px; transition:.2s; position:relative; }
+.qi-toggle input:checked ~ .qi-toggle-track { background:var(--qi-success); }
+.qi-toggle-thumb { position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+.qi-toggle input:checked ~ .qi-toggle-track .qi-toggle-thumb { transform:translateX(16px); }
+.qi-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:var(--qi-muted); text-align:center; }
+.qi-empty em { font-size:56px; opacity:.2; margin-bottom:14px; }
+.qi-empty h4 { font-size:16px; font-weight:800; color:var(--qi-text); margin:0 0 6px; }
+.qi-empty p  { font-size:13px; margin:0 0 18px; }
+.qi-toast { position:fixed; bottom:24px; right:24px; padding:12px 18px; border-radius:var(--qi-radius-sm); font-size:13px; font-weight:700; color:#fff; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,.18); z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.175,.885,.32,1.275); pointer-events:none; }
+.qi-toast.show { transform:translateY(0); opacity:1; }
+.qi-toast.ok  { background:#10b981; }
+.qi-toast.err { background:#ef4444; }
+.qi-confirm-overlay { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:9000; display:none; align-items:center; justify-content:center; }
+.qi-confirm-overlay.open { display:flex; }
+.qi-confirm-box { background:#fff; border-radius:var(--qi-radius); padding:28px; max-width:380px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.qi-confirm-box h5 { margin:0 0 8px; font-size:16px; font-weight:800; }
+.qi-confirm-box p  { margin:0 0 20px; font-size:13px; color:var(--qi-muted); }
+.qi-confirm-btns { display:flex; gap:10px; justify-content:flex-end; }
+.qi-confirm-cancel { padding:8px 18px; border:1.5px solid var(--qi-border); border-radius:7px; background:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+.qi-confirm-ok { padding:8px 18px; border:none; border-radius:7px; background:var(--qi-danger); color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+@media(max-width:768px) { .qi-stats { grid-template-columns:repeat(2,1fr); } .qi-grid { grid-template-columns:1fr; } }
+</style>
+
+{# Stats #}
+<div class="qi-stats">
+    <div class="qi-stat">
+        <div class="qi-stat-icon blue"><em class="icon ni ni-qr"></em></div>
+        <div><div class="qi-stat-val">{{ stats.total }}</div><div class="qi-stat-label">QR Codes total</div></div>
+    </div>
+    <div class="qi-stat">
+        <div class="qi-stat-icon green"><em class="icon ni ni-check-circle"></em></div>
+        <div><div class="qi-stat-val">{{ stats.active }}</div><div class="qi-stat-label">Actifs</div></div>
+    </div>
+    <div class="qi-stat">
+        <div class="qi-stat-icon orange"><em class="icon ni ni-scan"></em></div>
+        <div><div class="qi-stat-val">{{ stats.scans }}</div><div class="qi-stat-label">Scans totaux</div></div>
+    </div>
+    <div class="qi-stat">
+        <div class="qi-stat-icon cyan"><em class="icon ni ni-calender-date"></em></div>
+        <div><div class="qi-stat-val">{{ stats.today }}</div><div class="qi-stat-label">Créés aujourd'hui</div></div>
+    </div>
+</div>
+
+{# Toolbar #}
+<div class="qi-toolbar">
+    <div class="qi-search">
+        <em class="icon ni ni-search"></em>
+        <input type="text" id="qiSearch" placeholder="Rechercher un QR code…">
+    </div>
+    <select class="qi-filter" id="qiFilter">
+        <option value="all">Tous les types</option>
+        <option value="url">URL</option>
+        <option value="text">Texte</option>
+        <option value="vcard">vCard</option>
+        <option value="wifi">Wi-Fi</option>
+        <option value="email">Email</option>
+        <option value="tel">Téléphone</option>
+        <option value="sms">SMS</option>
+        <option value="geo">Géolocalisation</option>
+    </select>
+    <select class="qi-filter" id="qiStatus">
+        <option value="all">Tous les statuts</option>
+        <option value="active">Actifs</option>
+        <option value="inactive">Inactifs</option>
+    </select>
+</div>
+
+{# Grid #}
+{% if qr_codes is empty %}
+    <div class="qi-empty">
+        <em class="icon ni ni-qr"></em>
+        <h4>Aucun QR code encore</h4>
+        <p>Créez votre premier QR code en quelques secondes.</p>
+        <a href="{{ path('admin_qr_generate') }}" class="btn btn-primary">
+            <em class="icon ni ni-plus"></em> Créer un QR Code
+        </a>
+    </div>
+{% else %}
+    <div class="qi-grid" id="qiGrid">
+        {% for qr in qr_codes %}
+
+        {% set typeIcons = {
+            'url': 'ni-link-alt', 'text': 'ni-text-rich', 'vcard': 'ni-user-round',
+            'wifi': 'ni-wifi', 'email': 'ni-mail', 'tel': 'ni-call',
+            'sms': 'ni-msg', 'geo': 'ni-map-pin',
+        } %}
+
+        {# Calcul % barre scans sans filtre min (non disponible en Twig) #}
+        {% if qr.quotaMaxScans and qr.quotaMaxScans > 0 %}
+            {% set rawPct = (qr.compteurScans / qr.quotaMaxScans) * 100 %}
+            {% set pct = rawPct > 100 ? 100 : rawPct %}
+        {% else %}
+            {% set pct = qr.compteurScans > 0 ? 100 : 0 %}
+        {% endif %}
+
+        <div class="qi-card"
+             data-type="{{ qr.type }}"
+             data-status="{{ qr.estActif ? 'active' : 'inactive' }}"
+             data-title="{{ qr.titre|lower }}"
+             id="card-{{ qr.id }}">
+
+            <span class="qi-card-badge {{ qr.estActif ? 'active' : 'inactive' }}">{{ qr.estActif ? 'Actif' : 'Inactif' }}</span>
+            <span class="qi-card-type"><em class="icon ni {{ typeIcons[qr.type] ?? 'ni-qr' }}"></em></span>
+
+            <div class="qi-card-img">
+                {% if qr.imagePath %}
+                    <img src="{{ asset(qr.imagePath) }}" alt="{{ qr.titre }}">
+                {% else %}
+                    <div class="qi-card-img-ph">
+                        <em class="icon ni ni-qr"></em>
+                        <span>Image non générée</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="qi-card-body">
+                <p class="qi-card-title" title="{{ qr.titre }}">{{ qr.titre }}</p>
+                <div class="qi-card-meta">
+                    <em class="icon ni {{ typeIcons[qr.type] ?? 'ni-qr' }}"></em>
+                    {{ qr.type|upper }}
+                    {% if qr.dateDebut %} &nbsp;·&nbsp; <em class="icon ni ni-calender-date"></em> {{ qr.dateDebut|date('d/m/Y') }}{% endif %}
+                </div>
+
+                <div class="qi-card-scans">
+                    <div>
+                        <div class="qi-card-scans-val">{{ qr.compteurScans }}</div>
+                        <div class="qi-card-scans-label">scan{{ qr.compteurScans > 1 ? 's' : '' }}{% if qr.quotaMaxScans %} / {{ qr.quotaMaxScans }}{% endif %}</div>
+                    </div>
+                    <div class="qi-card-scans-bar">
+                        <div class="qi-card-scans-fill" style="width:{{ pct }}%"></div>
+                    </div>
+                    <label class="qi-toggle" title="{{ qr.estActif ? 'Désactiver' : 'Activer' }}">
+                        <input type="checkbox" {{ qr.estActif ? 'checked' : '' }} onchange="toggleQr({{ qr.id }}, this)">
+                        <div class="qi-toggle-track"><div class="qi-toggle-thumb"></div></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="qi-card-actions">
+                <button class="qi-card-btn qi-btn-dl" onclick="dlQr({{ qr.id }}, 'png')"><em class="icon ni ni-download"></em> PNG</button>
+                <button class="qi-card-btn qi-btn-dl" onclick="dlQr({{ qr.id }}, 'svg')"><em class="icon ni ni-download"></em> SVG</button>
+                <button class="qi-card-btn qi-btn-dup" onclick="dupQr({{ qr.id }})"><em class="icon ni ni-copy"></em></button>
+                <button class="qi-card-btn qi-btn-del" onclick="confirmDelete({{ qr.id }}, '{{ qr.titre|e('js') }}')"><em class="icon ni ni-trash"></em></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="qi-toast" id="toast"><em class="icon ni ni-check-circle-fill"></em><span id="toastMsg"></span></div>
+
+<div class="qi-confirm-overlay" id="confirmOverlay">
+    <div class="qi-confirm-box">
+        <h5><em class="icon ni ni-alert-circle" style="color:#ef4444"></em> Confirmer la suppression</h5>
+        <p id="confirmMsg">Voulez-vous vraiment supprimer ce QR code ?</p>
+        <div class="qi-confirm-btns">
+            <button class="qi-confirm-cancel" onclick="closeConfirm()">Annuler</button>
+            <button class="qi-confirm-ok" id="confirmOkBtn">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteId = null;
+
+function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.className = 'qi-toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function toggleQr(id, checkbox) {
+    fetch(`/admin/qrcodes/${id}/toggle`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.getElementById('card-' + id);
+            const badge = card.querySelector('.qi-card-badge');
+            badge.textContent   = data.estActif ? 'Actif' : 'Inactif';
+            badge.className     = 'qi-card-badge ' + (data.estActif ? 'active' : 'inactive');
+            card.dataset.status = data.estActif ? 'active' : 'inactive';
+            showToast(data.message, 'ok');
+        } else {
+            checkbox.checked = !checkbox.checked;
+            showToast('Erreur.', 'err');
+        }
+    })
+    .catch(() => { checkbox.checked = !checkbox.checked; showToast('Erreur réseau.', 'err'); });
+}
+
+function dupQr(id) {
+    fetch(`/admin/qrcodes/${id}/duplicate`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(r => r.json())
+    .then(data => {
+        showToast(data.message ?? (data.success ? 'Dupliqué !' : 'Erreur.'), data.success ? 'ok' : 'err');
+        if (data.success) setTimeout(() => location.reload(), 1200);
+    })
+    .catch(() => showToast('Erreur réseau.', 'err'));
+}
+
+function confirmDelete(id, titre) {
+    deleteId = id;
+    document.getElementById('confirmMsg').textContent = `Voulez-vous vraiment supprimer « ${titre} » ? Cette action est irréversible.`;
+    document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    deleteId = null;
+}
+
+document.getElementById('confirmOkBtn').onclick = function() {
+    if (!deleteId) return;
+    fetch(`/admin/qrcodes/${deleteId}/delete`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `_token={{ csrf_token('delete_qr_') }}` + deleteId
+    })
+    .then(r => r.json())
+    .then(data => {
+        closeConfirm();
+        if (data.success) {
+            const card = document.getElementById('card-' + deleteId);
+            card.style.transition = 'all .3s'; card.style.opacity = '0'; card.style.transform = 'scale(.9)';
+            setTimeout(() => card.remove(), 300);
+            showToast(data.message, 'ok');
+        } else {
+            showToast(data.message ?? 'Erreur.', 'err');
+        }
+    })
+    .catch(() => showToast('Erreur réseau.', 'err'));
+};
+
+function dlQr(id, format) { window.location.href = `/admin/qrcodes/${id}/download/${format}`; }
+
+function filterCards() {
+    const search = document.getElementById('qiSearch').value.toLowerCase();
+    const type   = document.getElementById('qiFilter').value;
+    const status = document.getElementById('qiStatus').value;
+    document.querySelectorAll('.qi-card').forEach(card => {
+        const ok = card.dataset.title.includes(search)
+                && (type   === 'all' || card.dataset.type   === type)
+                && (status === 'all' || card.dataset.status === status);
+        card.style.display = ok ? '' : 'none';
+    });
+}
+
+document.getElementById('qiSearch').addEventListener('input', filterCards);
+document.getElementById('qiFilter').addEventListener('change', filterCards);
+document.getElementById('qiStatus').addEventListener('change', filterCards);
+</script>
+{% endblock %}

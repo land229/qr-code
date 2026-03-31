@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		{% include 'home/_partials/tags/meta_tag.html.twig' %}
+		<title>
+			{% block title %} SIG - Generation de QRCode {% endblock %}
+		</title>
+		{% include 'home/_partials/tags/link_tag.html.twig' %}
+	</head>
+	<body>
+	<div class="page-wrapper">
+		{% block preloader %}
+			{#		{% include 'home/_partials/preloader.html.twig' %}#}
+		{% endblock %}
+		{% block header %}
+			{% include 'home/_partials/header.html.twig' %}
+		{% endblock %}
+		{#	{% block description %}#}
+		{#		{% include 'home/_partials/page_content.html.twig' %}#}
+		{#	{% endblock %}#}
+		{% block content %}
+			Contenu de la page ici
+		{% endblock %}
+		<!-- footer @s -->
+		{% include 'home/_partials/footer.html.twig' %}
+		<!-- footer @e -->
+		{#	{% block modal %}#}
+		{#			{% include 'home/_partials/modal.html.twig' %}#}
+		{#	{% endblock %}#}
+		<!--Scroll to top-->
+		<div class="scroll-to-top scroll-to-target" data-target="html"><span class="fa fa-arrow-up"></span></div>
+
+		{% include 'home/_partials/tags/script_tag.html.twig' %}
+	</div>
+
+	</body>
+</html>

@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QRCode{% endblock %}
+
+{% block body %}
+    <h1>QRCode</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ q_r_code.id }}</td>
+            </tr>
+            <tr>
+                <th>Titre</th>
+                <td>{{ q_r_code.titre }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ q_r_code.type }}</td>
+            </tr>
+            <tr>
+                <th>UrlCourte</th>
+                <td>{{ q_r_code.urlCourte }}</td>
+            </tr>
+            <tr>
+                <th>UrlDestination</th>
+                <td>{{ q_r_code.urlDestination }}</td>
+            </tr>
+            <tr>
+                <th>EstActif</th>
+                <td>{{ q_r_code.estActif ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
+                <th>DateDebut</th>
+                <td>{{ q_r_code.dateDebut ? q_r_code.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>DateFin</th>
+                <td>{{ q_r_code.dateFin ? q_r_code.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>QuotaMaxScans</th>
+                <td>{{ q_r_code.quotaMaxScans }}</td>
+            </tr>
+            <tr>
+                <th>CompteurScans</th>
+                <td>{{ q_r_code.compteurScans }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_admin_qr_code_index') }}">back to list</a>
+
+    <a href="{{ path('app_admin_qr_code_edit', {'id': q_r_code.id}) }}">edit</a>
+
+    {{ include('admin/qr_code/_delete_form.html.twig') }}
+{% endblock %}

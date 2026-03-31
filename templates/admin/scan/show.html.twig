@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Scan{% endblock %}
+
+{% block body %}
+    <h1>Scan</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ scan.id }}</td>
+            </tr>
+            <tr>
+                <th>DateHeure</th>
+                <td>{{ scan.dateHeure ? scan.dateHeure|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>IpAdresse</th>
+                <td>{{ scan.ipAdresse }}</td>
+            </tr>
+            <tr>
+                <th>Ville</th>
+                <td>{{ scan.ville }}</td>
+            </tr>
+            <tr>
+                <th>Pays</th>
+                <td>{{ scan.pays }}</td>
+            </tr>
+            <tr>
+                <th>Appareil</th>
+                <td>{{ scan.appareil }}</td>
+            </tr>
+            <tr>
+                <th>Navigateur</th>
+                <td>{{ scan.navigateur }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_admin_scan_index') }}">back to list</a>
+
+    <a href="{{ path('app_admin_scan_edit', {'id': scan.id}) }}">edit</a>
+
+    {{ include('admin/scan/_delete_form.html.twig') }}
+{% endblock %}

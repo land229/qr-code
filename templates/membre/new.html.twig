@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% block title %} Nouveau membre {% endblock %}
+
+{% block content %}
+    <div class="nk-content ">
+        {% block content_fluid %}
+            <div class="container-fluid">
+                {% block content_inner %}
+                    <div class="nk-content-body">
+                        {% embed 'admin/_partials/page_content.html.twig' %}
+                            {% block page_title %}
+                                Ajout de membres
+                            {% endblock %}
+                            {% block page_description %}
+                                Vous etes sur le point d'ajouter un membres à AFADOPA
+                            {% endblock %}
+                            {% block actions %}
+                                <div class="nk-block-head-content">
+                                    <div class="toggle-wrap nk-block-tools-toggle">
+                                        <a href="#" class="btn btn-icon btn-trigger toggle-expand me-n1" data-target="pageMenu"><em class="icon ni ni-menu-alt-r"></em></a>
+                                        <div class="toggle-expand-content" data-content="pageMenu">
+                                            <ul class="nk-block-tools g-3">
+                                                <li class="nk-block-tools-opt d-none d-sm-block">
+                                                    <a href="{{ path('app_membre_index') }}" class="btn btn-primary"><span>Retour </span></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div><!-- .toggle-wrap -->
+                                </div>
+                            {% endblock %}
+                        {% endembed %}
+                        {% block content_block %}
+                            {{ include('membre/_form.html.twig') }}
+                        {% endblock %}
+                    </div>
+                {% endblock %}
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}
+
+
+
+
+
+
